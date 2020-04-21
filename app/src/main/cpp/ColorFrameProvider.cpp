@@ -83,7 +83,7 @@ void ColorFrameProvider::generateLoop() {
         int nextIndex = (colorIndex + 1) % 3;
         if(color[prevIndex] != 0)
         {
-            color[prevIndex] += 1;
+            color[prevIndex] -= 1;
         }
         if(color[nextIndex] != (uint8_t)0xff)
         {
@@ -91,7 +91,7 @@ void ColorFrameProvider::generateLoop() {
         }
         if(color[prevIndex] == 0 && color[nextIndex] == (uint8_t)0xff)
         {
-            colorIndex = (colorIndex + 1) % 1;
+            colorIndex = (colorIndex + 1) % 3;
         }
 
         VideoFrame *f = queue->getUsed();
