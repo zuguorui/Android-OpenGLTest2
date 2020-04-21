@@ -32,9 +32,6 @@ public:
 
     void release() override;
 
-    void start() override;
-
-    void stop() override;
 
     void setVideoFrameProvider(IVideoFrameProvider *provider) override;
 

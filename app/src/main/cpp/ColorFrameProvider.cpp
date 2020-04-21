@@ -16,12 +16,12 @@ using namespace std;
 
 ColorFrameProvider::ColorFrameProvider() {
     queue = new BlockRecyclerQueue<VideoFrame *>(5);
-    player = new PicPreviewer();
-    if(!player->start())
+    player = new OpenGLESPlayer2();
+    if(!player->create())
     {
         LOGE("player create failed");
     }
-    player->setProvider(this);
+    player->setVideoFrameProvider(this);
 //    player->setVideoFrameProvider(this);
 
 }
@@ -29,7 +29,7 @@ ColorFrameProvider::ColorFrameProvider() {
 ColorFrameProvider::~ColorFrameProvider() {
 //    player->removeVideoFrameProvider(this);
 //    player->release();
-    player->stop();
+    player->release();
     queue->discardAll(NULL);
     VideoFrame *f = NULL;
     while((f = queue->get(false)) != NULL)
@@ -63,7 +63,7 @@ void ColorFrameProvider::setSurface(void *surface) {
 }
 
 void ColorFrameProvider::setSize(int32_t width, int32_t height) {
-    player->resetSize(width, height);
+    player->setSize(width, height);
 }
 
 void* ColorFrameProvider::threadCallback(void *self) {
@@ -73,10 +73,27 @@ void* ColorFrameProvider::threadCallback(void *self) {
 
 void ColorFrameProvider::generateLoop() {
     int32_t dataSizeInByte = HEIGHT * WIDTH * 3;
+    color[0] = 0xff;
+    color[1] = 0xff;
+    color[2] = 0x00;
+    int colorIndex = 1;
     while(!stopFlag)
     {
-        color += 0x00010101;
-        color &= 0x00ffffff;
+        int prevIndex = (colorIndex - 1 + 3) % 3;
+        int nextIndex = (colorIndex + 1) % 3;
+        if(color[prevIndex] != 0)
+        {
+            color[prevIndex] += 1;
+        }
+        if(color[nextIndex] != (uint8_t)0xff)
+        {
+            color[nextIndex] += 1;
+        }
+        if(color[prevIndex] == 0 && color[nextIndex] == (uint8_t)0xff)
+        {
+            colorIndex = (colorIndex + 1) % 1;
+        }
+
         VideoFrame *f = queue->getUsed();
         if(f == NULL)
         {
@@ -86,14 +103,13 @@ void ColorFrameProvider::generateLoop() {
         }
         for(int i = 0; i < WIDTH * HEIGHT; i++)
         {
-            f->data[3 * i] = (uint8_t)((color >> 16) & 0x00ff);
-            f->data[3 * i + 1] = (uint8_t)((color >> 8) & 0x00ff);
-            f->data[3 * i + 2] = (uint8_t)(color & 0x00ff);
+            f->data[3 * i] = color[0];
+            f->data[3 * i + 1] = color[1];
+            f->data[3 * i + 2] = color[2];
         }
         queue->put(f);
-
-        player->changeColor();
-        this_thread::sleep_for(chrono::milliseconds(40));
+        player->refresh();
+        this_thread::sleep_for(chrono::milliseconds(20));
     }
 }
 

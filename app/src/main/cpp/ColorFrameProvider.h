@@ -13,7 +13,7 @@
 #include "IVideoFrameProvider.h"
 #include "IVideoPlayer.h"
 #include "BlockRecyclerQueue.h"
-#include "OpenGLESPlayer.h"
+#include "OpenGLESPlayer2.h"
 #include "PicPreviewer.h"
 
 
@@ -39,10 +39,10 @@ public:
     void putBackUsed(VideoFrame *data) override;
 
 private:
-    int32_t color = 0;
+    uint8_t color[3];
     BlockRecyclerQueue<VideoFrame *> *queue = NULL;
 
-    PicPreviewer *player = NULL;
+    OpenGLESPlayer2 *player = NULL;
 
     static void *threadCallback(void *self);
 

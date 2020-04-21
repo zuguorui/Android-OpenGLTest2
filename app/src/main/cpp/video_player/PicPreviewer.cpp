@@ -210,6 +210,7 @@ void PicPreviewer::updateTexImage() {
     }
     VideoFrame *f = provider->getVideoFrame();
     picTexture->updateDataToTexture(f->data, f->width, f->height);
+    provider->putBackUsed(f);
 //    free(pixel);
 }
 
